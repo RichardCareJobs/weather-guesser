@@ -18,43 +18,23 @@ export type ClueKey =
   | 'humidity'
   | 'wind'
   | 'snow'
-  | 'dewPoint'
-  | 'elevation'
-  | 'distanceToCoast'
-  | 'population';
+  | 'dewPoint';
 
-export interface ClueDef {
-  key: ClueKey;
-  label: string;
+export interface QuizOption {
+  value: number;
 }
 
-export const CLUE_ORDER: ClueDef[] = [
-  { key: 'tempMax', label: "Yesterday's high" },
-  { key: 'tempMin', label: "Yesterday's low" },
-  { key: 'rain', label: 'Rainfall' },
-  { key: 'humidity', label: 'Average humidity' },
-  { key: 'wind', label: 'Peak wind speed' },
-  { key: 'snow', label: 'Snowfall' },
-  { key: 'dewPoint', label: 'Average dew point' },
-  { key: 'elevation', label: 'Elevation' },
-  { key: 'distanceToCoast', label: 'Distance to coastline' },
-  { key: 'population', label: 'Population' },
-];
-
-export interface CityFactsClue {
-  elevationM: number;
-  distanceToCoastKm: number;
-  populationApprox: number;
+export interface QuizQuestion {
+  clueKey: ClueKey;
+  options: QuizOption[]; // always length 3
+  correctIndex: number;
 }
 
-export interface Guess {
-  lat: number;
-  lon: number;
-  distanceKm: number;
-  bearingDeg: number;
-  correct: boolean;
+export interface CityRound {
+  cityId: string;
+  questions: QuizQuestion[]; // always length CLUES_PER_CITY
 }
-
-export type GameStatus = 'playing' | 'won' | 'lost';
 
 export type GameMode = 'daily' | 'practice';
+
+export type GamePhase = 'loading' | 'error' | 'playing' | 'cityTransition' | 'finished';

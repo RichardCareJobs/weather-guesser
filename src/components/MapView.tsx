@@ -2,42 +2,25 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { City } from '../data/cities';
-import type { Guess } from '../types';
-import { distanceToColor } from '../lib/geo';
 
 interface MapViewProps {
-  guesses: Guess[];
-  targetCity: City | null; // only passed once the game has ended
-  pendingPin: { lat: number; lon: number } | null;
-  disabled: boolean;
-  winDistanceKm: number;
-  onPick: (lat: number, lon: number) => void;
+  city: City | null;
 }
 
-function pinIcon(color: string, label?: string): L.DivIcon {
+function cityPinIcon(): L.DivIcon {
   return L.divIcon({
     className: 'wg-pin-wrapper',
-    html: `<div class="wg-pin" style="--pin-color:${color}">${label ?? ''}</div>`,
+    html: `<div class="wg-pin"></div>`,
     iconSize: [26, 34],
     iconAnchor: [13, 34],
   });
 }
 
-export default function MapView({
-  guesses,
-  targetCity,
-  pendingPin,
-  disabled,
-  winDistanceKm,
-  onPick,
-}: MapViewProps) {
+export default function MapView({ city }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const layerRef = useRef<L.LayerGroup | null>(null);
-  const onPickRef = useRef(onPick);
-  const disabledRef = useRef(disabled);
-  onPickRef.current = onPick;
-  disabledRef.current = disabled;
+  const markerRef = useRef<L.Marker | null>(null);
+  const shownCityIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -52,20 +35,14 @@ export default function MapView({
       ],
       maxBoundsViscosity: 1,
       worldCopyJump: true,
+      zoomControl: false,
+      attributionControl: false,
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 18,
     }).addTo(map);
 
-    map.on('click', (e: L.LeafletMouseEvent) => {
-      if (disabledRef.current) return;
-      onPickRef.current(e.latlng.lat, e.latlng.lng);
-    });
-
-    layerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
 
     return () => {
@@ -76,40 +53,28 @@ export default function MapView({
 
   useEffect(() => {
     const map = mapRef.current;
-    const layer = layerRef.current;
-    if (!map || !layer) return;
-    layer.clearLayers();
+    if (!map || !city) return;
 
-    guesses.forEach((guess, i) => {
-      const color = guess.correct ? '#2e7d32' : distanceToColor(guess.distanceKm, winDistanceKm);
-      L.marker([guess.lat, guess.lon], { icon: pinIcon(color, String(i + 1)) })
-        .addTo(layer)
-        .bindTooltip(`Guess ${i + 1}`, { direction: 'top', offset: [0, -30] });
+    if (markerRef.current) {
+      markerRef.current.remove();
+      markerRef.current = null;
+    }
+
+    const marker = L.marker([city.lat, city.lon], { icon: cityPinIcon() }).addTo(map);
+    marker.bindTooltip(`${city.name}, ${city.country}`, {
+      direction: 'top',
+      offset: [0, -32],
+      permanent: true,
+      className: 'wg-city-tooltip',
     });
+    markerRef.current = marker;
 
-    if (pendingPin) {
-      L.marker([pendingPin.lat, pendingPin.lon], {
-        icon: pinIcon('#1565c0'),
-        opacity: 0.9,
-      }).addTo(layer);
-    }
-
-    if (targetCity) {
-      L.marker([targetCity.lat, targetCity.lon], { icon: pinIcon('#f9a825', '★') })
-        .addTo(layer)
-        .bindTooltip(`${targetCity.name}, ${targetCity.country}`, {
-          direction: 'top',
-          offset: [0, -30],
-          permanent: true,
-        });
-
-      const bounds = L.latLngBounds([
-        [targetCity.lat, targetCity.lon],
-        ...guesses.map((g): [number, number] => [g.lat, g.lon]),
-      ]);
-      map.fitBounds(bounds.pad(0.3), { maxZoom: 6 });
-    }
-  }, [guesses, pendingPin, targetCity, winDistanceKm]);
+    const isFirstCity = shownCityIdRef.current === null;
+    shownCityIdRef.current = city.id;
+    map.flyTo([city.lat, city.lon], 6, {
+      duration: isFirstCity ? 1.1 : 1.6,
+    });
+  }, [city]);
 
   return <div ref={containerRef} className="wg-map" />;
 }
