@@ -11,10 +11,11 @@ import {
   formatPopulation,
 } from '../lib/units';
 
-interface ClueListProps {
+interface ClueBubbleProps {
   weather: DailyWeather | null;
   facts: CityFactsClue | null;
-  revealedCount: number; // how many clues are unlocked (1..CLUE_ORDER.length)
+  revealedCount: number; // how many clues are unlocked (1..totalClues)
+  totalClues: number;
   units: UnitSystem;
 }
 
@@ -50,32 +51,22 @@ function clueValue(
   }
 }
 
-export default function ClueList({ weather, facts, revealedCount, units }: ClueListProps) {
+export default function ClueBubble({ weather, facts, revealedCount, totalClues, units }: ClueBubbleProps) {
+  const clue = CLUE_ORDER[revealedCount - 1];
+  if (!clue) return null;
+
+  const value = clueValue(clue.key, weather, facts, units);
+  const remaining = totalClues - revealedCount;
+
   return (
-    <ul className="wg-clue-list">
-      {CLUE_ORDER.map((clue, i) => {
-        const revealed = i < revealedCount;
-        if (!revealed) {
-          return (
-            <li key={clue.key} className="wg-clue locked">
-              <span className="wg-clue-label wg-clue-locked-label">
-                <span className="wg-lock-icon" aria-hidden="true">
-                  🔒
-                </span>
-                Hint {i + 1}
-              </span>
-              <span className="wg-clue-value">Unlocks after guess {i}</span>
-            </li>
-          );
-        }
-        const value = clueValue(clue.key, weather, facts, units);
-        return (
-          <li key={clue.key} className="wg-clue revealed">
-            <span className="wg-clue-label">{clue.label}</span>
-            <span className="wg-clue-value">{value ?? '…'}</span>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="wg-clue-bubble" key={clue.key}>
+      <span className="wg-clue-bubble-tag">
+        Clue {revealedCount} <span className="wg-clue-bubble-sep">|</span> {remaining} remaining
+      </span>
+      <div className="wg-clue-bubble-body">
+        <span className="wg-clue-bubble-label">{clue.label}</span>
+        <span className="wg-clue-bubble-value">{value ?? '…'}</span>
+      </div>
+    </div>
   );
 }

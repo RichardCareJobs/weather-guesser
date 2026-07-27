@@ -7,6 +7,7 @@ import { CITY_FACTS } from './data/cityFacts';
 import { cityForDate, randomCity, todayKey } from './lib/dailyPuzzle';
 import { fetchPreviousDayWeather } from './lib/openMeteo';
 import { haversineDistanceKm, bearingDeg, distanceToCoastKm } from './lib/geo';
+import { guessFeedbackHeading } from './lib/feedback';
 import {
   loadSettings,
   saveSettings,
@@ -18,7 +19,7 @@ import {
 } from './lib/storage';
 import Header from './components/Header';
 import MapView from './components/MapView';
-import ClueList from './components/ClueList';
+import ClueBubble from './components/ClueBubble';
 import GuessHistory from './components/GuessHistory';
 import Compass from './components/Compass';
 import ResultModal from './components/ResultModal';
@@ -157,20 +158,35 @@ export default function App() {
     return 'Click anywhere on the map to drop your guess.';
   }, [status, pendingPin]);
 
+  const compassHeading = useMemo(() => {
+    if (guesses.length === 0) return '';
+    const latest = guesses[guesses.length - 1];
+    return guessFeedbackHeading(latest, WIN_DISTANCE_KM, guesses.length);
+  }, [guesses]);
+
   return (
     <div className="wg-app">
       <Header mode={mode} onChangeMode={setMode} units={units} onChangeUnits={handleChangeUnits} />
 
       <main className="wg-main">
         <div className="wg-map-panel">
-          <MapView
-            guesses={guesses}
-            targetCity={targetForMap}
-            pendingPin={pendingPin}
-            disabled={status !== 'playing'}
-            winDistanceKm={WIN_DISTANCE_KM}
-            onPick={handlePick}
-          />
+          <div className="wg-map-wrap">
+            <MapView
+              guesses={guesses}
+              targetCity={targetForMap}
+              pendingPin={pendingPin}
+              disabled={status !== 'playing'}
+              winDistanceKm={WIN_DISTANCE_KM}
+              onPick={handlePick}
+            />
+            <ClueBubble
+              weather={weather}
+              facts={cityFacts}
+              revealedCount={revealedCount}
+              totalClues={MAX_GUESSES}
+              units={units}
+            />
+          </div>
           <div className="wg-map-footer">
             <span className="wg-helper-text">{helperText}</span>
             <button
@@ -184,14 +200,10 @@ export default function App() {
         </div>
 
         <aside className="wg-sidebar">
-          <section>
-            <h2>Clues</h2>
-            {weatherError && <p className="wg-error">{weatherError}</p>}
-            <ClueList weather={weather} facts={cityFacts} revealedCount={revealedCount} units={units} />
-          </section>
+          {weatherError && <p className="wg-error">{weatherError}</p>}
           {guesses.length > 0 && (
             <section className="wg-compass-section">
-              <h2>Latest guess</h2>
+              <h2>{compassHeading}</h2>
               <Compass
                 guess={guesses[guesses.length - 1]}
                 guessNum={guesses.length}
