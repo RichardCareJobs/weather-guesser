@@ -1,29 +1,39 @@
 import type { Guess, UnitSystem } from '../types';
 import { formatDistance } from '../lib/units';
-import { compassDirection } from '../lib/geo';
+import { compassDirection, distanceToColor } from '../lib/geo';
 
 interface GuessHistoryProps {
   guesses: Guess[];
   units: UnitSystem;
   maxGuesses: number;
+  winDistanceKm: number;
 }
 
-export default function GuessHistory({ guesses, units, maxGuesses }: GuessHistoryProps) {
+export default function GuessHistory({ guesses, units, maxGuesses, winDistanceKm }: GuessHistoryProps) {
   if (guesses.length === 0) return null;
   return (
     <ol className="wg-guess-history">
-      {guesses.map((g, i) => (
-        <li key={i} className={g.correct ? 'correct' : ''}>
-          <span className="wg-guess-num">{i + 1}</span>
-          {g.correct ? (
-            <span className="wg-guess-result">Correct!</span>
-          ) : (
-            <span className="wg-guess-result">
-              {formatDistance(g.distanceKm, units)} {compassDirection(g.bearingDeg)}
+      {guesses.map((g, i) => {
+        const color = g.correct ? undefined : distanceToColor(g.distanceKm, winDistanceKm);
+        return (
+          <li
+            key={i}
+            className={g.correct ? 'correct' : ''}
+            style={color ? { borderColor: color } : undefined}
+          >
+            <span className="wg-guess-num" style={color ? { background: color, color: '#fff' } : undefined}>
+              {i + 1}
             </span>
-          )}
-        </li>
-      ))}
+            {g.correct ? (
+              <span className="wg-guess-result">Correct!</span>
+            ) : (
+              <span className="wg-guess-result" style={{ color }}>
+                {formatDistance(g.distanceKm, units)} {compassDirection(g.bearingDeg)}
+              </span>
+            )}
+          </li>
+        );
+      })}
       {guesses.length < maxGuesses &&
         Array.from({ length: maxGuesses - guesses.length }).map((_, i) => (
           <li key={`empty-${i}`} className="empty">

@@ -243,12 +243,35 @@ h1, h2 {
 }
 
 .wg-clue.locked {
-  opacity: 0.45;
+  opacity: 0.55;
+  background: var(--code-bg);
 }
 
 .wg-clue.revealed {
   background: var(--accent-bg);
   border-color: var(--accent-border);
+  animation: wg-clue-reveal 0.4s ease;
+}
+
+@keyframes wg-clue-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.wg-clue-locked-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wg-lock-icon {
+  font-size: 11px;
 }
 
 .wg-clue-label {
@@ -306,6 +329,58 @@ h1, h2 {
   color: #c62828;
   font-size: 13px;
   margin-bottom: 8px;
+}
+
+/* Compass */
+.wg-compass {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.wg-compass-dial {
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+}
+
+.wg-compass-ring {
+  fill: var(--bg);
+  stroke: var(--border);
+  stroke-width: 2;
+}
+
+.wg-compass-tick {
+  fill: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.wg-compass-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.wg-compass-guess-num {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text);
+}
+
+.wg-compass-info strong {
+  font-size: 15px;
+}
+
+/* Hide the detailed guess history on mobile - it takes up too much space
+   next to the map; the compass above already surfaces the key feedback. */
+@media (max-width: 860px) {
+  .wg-guesses-section {
+    display: none;
+  }
 }
 
 /* Buttons */
