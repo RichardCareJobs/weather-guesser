@@ -1,0 +1,435 @@
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --bg-panel: #f8f7fb;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 16px/145% var(--sans);
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --bg-panel: #1c1d24;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1, h2 {
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.wg-app {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.wg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.wg-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wg-title h1 {
+  font-size: 22px;
+}
+
+.wg-title-icon {
+  font-size: 26px;
+}
+
+.wg-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wg-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.wg-toggle button {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.wg-toggle button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.wg-icon-button {
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text-h);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.wg-settings {
+  position: relative;
+}
+
+.wg-settings-panel {
+  position: absolute;
+  right: 0;
+  top: 44px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  z-index: 1000;
+  min-width: 220px;
+}
+
+.wg-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Main layout */
+.wg-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 0;
+  min-height: 0;
+}
+
+@media (max-width: 860px) {
+  .wg-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wg-map-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+}
+
+.wg-map {
+  flex: 1;
+  min-height: 420px;
+  z-index: 0;
+}
+
+.wg-map-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.wg-helper-text {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.wg-sidebar {
+  border-left: 1px solid var(--border);
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--bg-panel);
+}
+
+@media (max-width: 860px) {
+  .wg-sidebar {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}
+
+.wg-sidebar section {
+  margin-bottom: 24px;
+}
+
+.wg-sidebar h2 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wg-guess-count {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text);
+}
+
+/* Clue list */
+.wg-clue-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wg-clue {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.wg-clue.locked {
+  opacity: 0.45;
+}
+
+.wg-clue.revealed {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.wg-clue-label {
+  color: var(--text);
+}
+
+.wg-clue-value {
+  font-weight: 600;
+  color: var(--text-h);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Guess history */
+.wg-guess-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wg-guess-history li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.wg-guess-history li.empty {
+  opacity: 0.35;
+}
+
+.wg-guess-history li.correct {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.wg-guess-num {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--border);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.wg-error {
+  color: #c62828;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* Buttons */
+.wg-button {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wg-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.wg-button.secondary {
+  background: transparent;
+  border: 1px solid var(--accent-border);
+  color: var(--text-h);
+}
+
+.wg-button.ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+/* Map pins (leaflet divIcon) */
+.wg-pin-wrapper {
+  background: transparent;
+  border: none;
+}
+
+.wg-pin {
+  width: 26px;
+  height: 34px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wg-pin::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--pin-color, #1565c0);
+  clip-path: path('M13 0C6 0 0 5.5 0 12.5C0 21 13 34 13 34C13 34 26 21 26 12.5C26 5.5 20 0 13 0Z');
+}
+
+.wg-pin span,
+.wg-pin {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 1;
+  padding-bottom: 8px;
+}
+
+/* Result modal */
+.wg-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 16px;
+}
+
+.wg-modal {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 28px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.wg-modal-city {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin-top: 8px;
+}
+
+.wg-modal-sub {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.wg-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.wg-stats-grid div {
+  display: flex;
+  flex-direction: column;
+}
+
+.wg-stats-grid strong {
+  font-size: 22px;
+  color: var(--text-h);
+}
+
+.wg-stats-grid span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.wg-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
