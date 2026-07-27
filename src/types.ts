@@ -18,7 +18,10 @@ export type ClueKey =
   | 'humidity'
   | 'wind'
   | 'snow'
-  | 'dewPoint';
+  | 'dewPoint'
+  | 'elevation'
+  | 'distanceToCoast'
+  | 'population';
 
 export interface ClueDef {
   key: ClueKey;
@@ -33,7 +36,16 @@ export const CLUE_ORDER: ClueDef[] = [
   { key: 'wind', label: 'Peak wind speed' },
   { key: 'snow', label: 'Snowfall' },
   { key: 'dewPoint', label: 'Average dew point' },
+  { key: 'elevation', label: 'Elevation' },
+  { key: 'distanceToCoast', label: 'Distance to coastline' },
+  { key: 'population', label: 'Population' },
 ];
+
+export interface CityFactsClue {
+  elevationM: number;
+  distanceToCoastKm: number;
+  populationApprox: number;
+}
 
 export interface Guess {
   lat: number;

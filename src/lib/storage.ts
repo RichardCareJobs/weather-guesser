@@ -1,4 +1,5 @@
 import type { UnitSystem, Guess } from '../types';
+import { CLUE_ORDER } from '../types';
 
 const SETTINGS_KEY = 'weather-guesser:settings';
 const STATS_KEY = 'weather-guesser:stats';
@@ -27,7 +28,7 @@ export interface Stats {
   won: number;
   currentStreak: number;
   maxStreak: number;
-  guessDistribution: number[]; // index = guesses used - 1, length 7
+  guessDistribution: number[]; // index = guesses used - 1, length CLUE_ORDER.length
 }
 
 const EMPTY_STATS: Stats = {
@@ -35,7 +36,7 @@ const EMPTY_STATS: Stats = {
   won: 0,
   currentStreak: 0,
   maxStreak: 0,
-  guessDistribution: [0, 0, 0, 0, 0, 0, 0],
+  guessDistribution: Array(CLUE_ORDER.length).fill(0),
 };
 
 export function loadStats(): Stats {
