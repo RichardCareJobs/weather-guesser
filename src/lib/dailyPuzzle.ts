@@ -1,14 +1,6 @@
 import { CITIES, type City } from '../data/cities';
-
-// Simple deterministic string hash (djb2) so the same calendar date always
-// maps to the same city for every player, without needing a backend.
-function hashString(str: string): number {
-  let hash = 5381;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash * 33) ^ str.charCodeAt(i);
-  }
-  return hash >>> 0;
-}
+import { createRng, shuffle } from './rng';
+import { CITIES_PER_ROUND } from './constants';
 
 // YYYY-MM-DD in the browser's local calendar, used as the puzzle "day".
 export function todayKey(date = new Date()): string {
@@ -18,15 +10,18 @@ export function todayKey(date = new Date()): string {
   return `${y}-${m}-${d}`;
 }
 
-export function cityForDate(dateKey: string): City {
-  const index = hashString(dateKey) % CITIES.length;
-  return CITIES[index];
+function pickDistinct(rng: () => number, count: number): City[] {
+  return shuffle(CITIES, rng).slice(0, count);
 }
 
-export function randomCity(excludeId?: string): City {
-  let city: City;
-  do {
-    city = CITIES[Math.floor(Math.random() * CITIES.length)];
-  } while (CITIES.length > 1 && city.id === excludeId);
-  return city;
+// The same calendar date always maps to the same set of cities for every
+// player, without needing a backend.
+export function citiesForDate(dateKey: string, count = CITIES_PER_ROUND): City[] {
+  const rng = createRng(`weather-guesser:cities:${dateKey}`);
+  return pickDistinct(rng, count);
+}
+
+export function randomCities(count = CITIES_PER_ROUND): City[] {
+  const rng = Math.random;
+  return pickDistinct(rng, count);
 }
