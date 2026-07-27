@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { City } from './data/cities';
-import type { DailyWeather, GameMode, GameStatus, Guess, UnitSystem } from './types';
+import type { CityFactsClue, DailyWeather, GameMode, GameStatus, Guess, UnitSystem } from './types';
 import { CLUE_ORDER } from './types';
 import { CITIES } from './data/cities';
+import { CITY_FACTS } from './data/cityFacts';
 import { cityForDate, randomCity, todayKey } from './lib/dailyPuzzle';
 import { fetchPreviousDayWeather } from './lib/openMeteo';
-import { haversineDistanceKm, bearingDeg } from './lib/geo';
+import { haversineDistanceKm, bearingDeg, distanceToCoastKm } from './lib/geo';
 import {
   loadSettings,
   saveSettings,
@@ -19,6 +20,7 @@ import Header from './components/Header';
 import MapView from './components/MapView';
 import ClueList from './components/ClueList';
 import GuessHistory from './components/GuessHistory';
+import Compass from './components/Compass';
 import ResultModal from './components/ResultModal';
 
 const MAX_GUESSES = CLUE_ORDER.length; // 7
@@ -93,6 +95,15 @@ export default function App() {
 
   const revealedCount = Math.min(guesses.length + 1, MAX_GUESSES);
 
+  const cityFacts: CityFactsClue = useMemo(
+    () => ({
+      elevationM: CITY_FACTS[city.id]?.elevationM ?? 0,
+      distanceToCoastKm: Math.round(distanceToCoastKm(city.lat, city.lon)),
+      populationApprox: CITY_FACTS[city.id]?.populationApprox ?? 0,
+    }),
+    [city],
+  );
+
   const handleChangeUnits = (next: UnitSystem) => {
     setUnits(next);
     saveSettings({ units: next });
@@ -157,6 +168,7 @@ export default function App() {
             targetCity={targetForMap}
             pendingPin={pendingPin}
             disabled={status !== 'playing'}
+            winDistanceKm={WIN_DISTANCE_KM}
             onPick={handlePick}
           />
           <div className="wg-map-footer">
@@ -175,13 +187,29 @@ export default function App() {
           <section>
             <h2>Clues</h2>
             {weatherError && <p className="wg-error">{weatherError}</p>}
-            <ClueList weather={weather} revealedCount={revealedCount} units={units} />
+            <ClueList weather={weather} facts={cityFacts} revealedCount={revealedCount} units={units} />
           </section>
-          <section>
+          {guesses.length > 0 && (
+            <section className="wg-compass-section">
+              <h2>Latest guess</h2>
+              <Compass
+                guess={guesses[guesses.length - 1]}
+                guessNum={guesses.length}
+                units={units}
+                winDistanceKm={WIN_DISTANCE_KM}
+              />
+            </section>
+          )}
+          <section className="wg-guesses-section">
             <h2>
               Guesses <span className="wg-guess-count">{guesses.length}/{MAX_GUESSES}</span>
             </h2>
-            <GuessHistory guesses={guesses} units={units} maxGuesses={MAX_GUESSES} />
+            <GuessHistory
+              guesses={guesses}
+              units={units}
+              maxGuesses={MAX_GUESSES}
+              winDistanceKm={WIN_DISTANCE_KM}
+            />
           </section>
         </aside>
       </main>

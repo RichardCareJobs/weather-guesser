@@ -40,3 +40,20 @@ export function formatDistance(km: number, units: UnitSystem): string {
   }
   return `${Math.round(km).toLocaleString()} km`;
 }
+
+export function formatElevation(meters: number, units: UnitSystem): string {
+  if (units === 'imperial') {
+    return `${Math.round(meters * 3.28084).toLocaleString()} ft`;
+  }
+  return `${Math.round(meters).toLocaleString()} m`;
+}
+
+export function formatPopulation(count: number): string {
+  if (count >= 1000000) {
+    return `${(count / 1000000).toFixed(count >= 10000000 ? 0 : 1)}M`;
+  }
+  if (count >= 1000) {
+    return `${Math.round(count / 1000).toLocaleString()}K`;
+  }
+  return count.toLocaleString();
+}

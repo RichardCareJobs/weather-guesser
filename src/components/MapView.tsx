@@ -3,12 +3,14 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { City } from '../data/cities';
 import type { Guess } from '../types';
+import { distanceToColor } from '../lib/geo';
 
 interface MapViewProps {
   guesses: Guess[];
   targetCity: City | null; // only passed once the game has ended
   pendingPin: { lat: number; lon: number } | null;
   disabled: boolean;
+  winDistanceKm: number;
   onPick: (lat: number, lon: number) => void;
 }
 
@@ -26,6 +28,7 @@ export default function MapView({
   targetCity,
   pendingPin,
   disabled,
+  winDistanceKm,
   onPick,
 }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -78,7 +81,7 @@ export default function MapView({
     layer.clearLayers();
 
     guesses.forEach((guess, i) => {
-      const color = guess.correct ? '#2e7d32' : '#c62828';
+      const color = guess.correct ? '#2e7d32' : distanceToColor(guess.distanceKm, winDistanceKm);
       L.marker([guess.lat, guess.lon], { icon: pinIcon(color, String(i + 1)) })
         .addTo(layer)
         .bindTooltip(`Guess ${i + 1}`, { direction: 'top', offset: [0, -30] });
@@ -106,7 +109,7 @@ export default function MapView({
       ]);
       map.fitBounds(bounds.pad(0.3), { maxZoom: 6 });
     }
-  }, [guesses, pendingPin, targetCity]);
+  }, [guesses, pendingPin, targetCity, winDistanceKm]);
 
   return <div ref={containerRef} className="wg-map" />;
 }
