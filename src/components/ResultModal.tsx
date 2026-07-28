@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import type { City } from '../data/cities';
-import type { Guess, GameMode } from '../types';
+import type { GameMode } from '../types';
 import type { Stats } from '../lib/storage';
 import { buildShareText } from '../lib/share';
+import { CLUES_PER_CITY, TOTAL_QUESTIONS } from '../lib/constants';
 
 interface ResultModalProps {
-  won: boolean;
-  city: City;
-  guesses: Guess[];
-  maxGuesses: number;
+  score: number;
+  cities: City[];
+  answers: boolean[];
   mode: GameMode;
   dateKey?: string;
   stats: Stats;
@@ -16,11 +16,17 @@ interface ResultModalProps {
   onClose: () => void;
 }
 
+function headline(score: number): string {
+  if (score === TOTAL_QUESTIONS) return 'Perfect day!';
+  if (score >= 7) return 'Great job!';
+  if (score >= 4) return 'Nice work!';
+  return 'Better luck tomorrow!';
+}
+
 export default function ResultModal({
-  won,
-  city,
-  guesses,
-  maxGuesses,
+  score,
+  cities,
+  answers,
   mode,
   dateKey,
   stats,
@@ -30,7 +36,7 @@ export default function ResultModal({
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
-    const text = buildShareText(guesses, won, maxGuesses, mode, dateKey);
+    const text = buildShareText(answers, mode, dateKey);
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -40,20 +46,33 @@ export default function ResultModal({
     }
   };
 
-  const winPct = stats.played > 0 ? Math.round((stats.won / stats.played) * 100) : 0;
+  const avgScore = stats.played > 0 ? (stats.totalScore / stats.played).toFixed(1) : '0.0';
 
   return (
     <div className="wg-modal-backdrop" role="dialog" aria-modal="true">
       <div className="wg-modal">
-        <h2>{won ? 'You got it!' : 'Out of guesses'}</h2>
-        <p className="wg-modal-city">
-          {city.name}, {city.country}
+        <h2>{headline(score)}</h2>
+        <p className="wg-modal-score">
+          {score}/{TOTAL_QUESTIONS}
         </p>
-        <p className="wg-modal-sub">
-          {won
-            ? `Solved in ${guesses.length} of ${maxGuesses} guesses.`
-            : "Better luck next time."}
-        </p>
+
+        <ul className="wg-modal-city-list">
+          {cities.map((city, c) => {
+            const cityCorrect = answers
+              .slice(c * CLUES_PER_CITY, c * CLUES_PER_CITY + CLUES_PER_CITY)
+              .filter(Boolean).length;
+            return (
+              <li key={city.id}>
+                <span>
+                  {city.name}, {city.country}
+                </span>
+                <span className="wg-modal-city-score">
+                  {cityCorrect}/{CLUES_PER_CITY}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
 
         {mode === 'daily' && (
           <div className="wg-stats-grid">
@@ -62,8 +81,8 @@ export default function ResultModal({
               <span>Played</span>
             </div>
             <div>
-              <strong>{winPct}</strong>
-              <span>Win %</span>
+              <strong>{avgScore}</strong>
+              <span>Avg score</span>
             </div>
             <div>
               <strong>{stats.currentStreak}</strong>

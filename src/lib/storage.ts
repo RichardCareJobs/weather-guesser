@@ -1,9 +1,9 @@
-import type { UnitSystem, Guess } from '../types';
-import { CLUE_ORDER } from '../types';
+import type { UnitSystem } from '../types';
+import { GREAT_SCORE_THRESHOLD, TOTAL_QUESTIONS } from './constants';
 
 const SETTINGS_KEY = 'weather-guesser:settings';
-const STATS_KEY = 'weather-guesser:stats';
-const DAILY_STATE_KEY = 'weather-guesser:daily-state';
+const STATS_KEY = 'weather-guesser:stats:v2';
+const DAILY_STATE_KEY = 'weather-guesser:daily-state:v2';
 
 export interface Settings {
   units: UnitSystem;
@@ -25,40 +25,43 @@ export function saveSettings(settings: Settings): void {
 
 export interface Stats {
   played: number;
-  won: number;
+  totalScore: number;
+  bestScore: number;
   currentStreak: number;
   maxStreak: number;
-  guessDistribution: number[]; // index = guesses used - 1, length CLUE_ORDER.length
+  scoreDistribution: number[]; // index = score (0..TOTAL_QUESTIONS)
 }
 
 const EMPTY_STATS: Stats = {
   played: 0,
-  won: 0,
+  totalScore: 0,
+  bestScore: 0,
   currentStreak: 0,
   maxStreak: 0,
-  guessDistribution: Array(CLUE_ORDER.length).fill(0),
+  scoreDistribution: Array(TOTAL_QUESTIONS + 1).fill(0),
 };
 
 export function loadStats(): Stats {
   try {
     const raw = localStorage.getItem(STATS_KEY);
-    if (!raw) return { ...EMPTY_STATS, guessDistribution: [...EMPTY_STATS.guessDistribution] };
+    if (!raw) return { ...EMPTY_STATS, scoreDistribution: [...EMPTY_STATS.scoreDistribution] };
     const parsed = JSON.parse(raw);
     return { ...EMPTY_STATS, ...parsed };
   } catch {
-    return { ...EMPTY_STATS, guessDistribution: [...EMPTY_STATS.guessDistribution] };
+    return { ...EMPTY_STATS, scoreDistribution: [...EMPTY_STATS.scoreDistribution] };
   }
 }
 
-export function recordResult(won: boolean, guessesUsed: number): Stats {
+export function recordResult(score: number): Stats {
   const stats = loadStats();
   stats.played += 1;
-  if (won) {
-    stats.won += 1;
+  stats.totalScore += score;
+  stats.bestScore = Math.max(stats.bestScore, score);
+  const idx = Math.min(Math.max(score, 0), stats.scoreDistribution.length - 1);
+  stats.scoreDistribution[idx] += 1;
+  if (score >= GREAT_SCORE_THRESHOLD) {
     stats.currentStreak += 1;
     stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
-    const idx = Math.min(guessesUsed - 1, stats.guessDistribution.length - 1);
-    stats.guessDistribution[idx] += 1;
   } else {
     stats.currentStreak = 0;
   }
@@ -68,9 +71,8 @@ export function recordResult(won: boolean, guessesUsed: number): Stats {
 
 export interface DailyState {
   dateKey: string;
-  cityId: string;
-  guesses: Guess[];
-  status: 'playing' | 'won' | 'lost';
+  cityIds: string[];
+  answers: boolean[];
 }
 
 export function loadDailyState(): DailyState | null {
