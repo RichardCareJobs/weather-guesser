@@ -39,12 +39,14 @@ export default function MapView({ city }: MapViewProps) {
       attributionControl: false,
     });
 
-    // Wikimedia's "osm-intl" style renders place labels in English (falling back
+    // CARTO's "Voyager" basemap renders place labels in English (falling back
     // to the local name when no English name exists) instead of the local
-    // language used by the standard OSM tiles.
-    L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
+    // language used by the standard OSM tiles. (Wikimedia's osm-intl tiles
+    // have the same effect but return 403 for non-Wikimedia sites.)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+      subdomains: 'abcd',
       maxZoom: 18,
-      attribution: '© OpenStreetMap contributors',
+      attribution: '© OpenStreetMap contributors © CARTO',
     }).addTo(map);
 
     mapRef.current = map;
