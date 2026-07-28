@@ -1,4 +1,4 @@
-import type { UnitSystem } from '../types';
+import type { ClueKey, UnitSystem } from '../types';
 
 export function formatTemp(celsius: number, units: UnitSystem): string {
   if (units === 'imperial') {
@@ -56,4 +56,23 @@ export function formatPopulation(count: number): string {
     return `${Math.round(count / 1000).toLocaleString()}K`;
   }
   return count.toLocaleString();
+}
+
+// Formats a raw weather value for a given clue key & unit system. Used to
+// render multiple-choice answer options from their underlying numeric value.
+export function formatClueValue(key: ClueKey, value: number, units: UnitSystem): string {
+  switch (key) {
+    case 'tempMax':
+    case 'tempMin':
+    case 'dewPoint':
+      return formatTemp(value, units);
+    case 'rain':
+      return formatPrecip(value, units);
+    case 'snow':
+      return formatSnow(value, units);
+    case 'wind':
+      return formatWind(value, units);
+    case 'humidity':
+      return formatHumidity(value);
+  }
 }
