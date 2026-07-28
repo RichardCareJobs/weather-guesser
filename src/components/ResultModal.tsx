@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { City } from '../data/cities';
 import type { GameMode } from '../types';
 import type { Stats } from '../lib/storage';
@@ -14,6 +14,7 @@ interface ResultModalProps {
   stats: Stats;
   onPlayPractice: () => void;
   onClose: () => void;
+  onNewDay?: () => void;
 }
 
 function headline(score: number): string {
@@ -21,6 +22,23 @@ function headline(score: number): string {
   if (score >= 7) return 'Great job!';
   if (score >= 4) return 'Nice work!';
   return 'Better luck tomorrow!';
+}
+
+// Ms until the next local midnight, which is when todayKey() (and so the
+// daily puzzle) rolls over.
+function msUntilNextLocalMidnight(): number {
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+  return next.getTime() - now.getTime();
+}
+
+function formatCountdown(ms: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
 export default function ResultModal({
@@ -32,11 +50,35 @@ export default function ResultModal({
   stats,
   onPlayPractice,
   onClose,
+  onNewDay,
 }: ResultModalProps) {
   const [copied, setCopied] = useState(false);
+  const [msLeft, setMsLeft] = useState(() => msUntilNextLocalMidnight());
+
+  useEffect(() => {
+    if (mode !== 'daily') return;
+    const id = window.setInterval(() => {
+      const remaining = msUntilNextLocalMidnight();
+      setMsLeft(remaining);
+      if (remaining <= 0) onNewDay?.();
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [mode, onNewDay]);
 
   const handleShare = async () => {
     const text = buildShareText(answers, mode, dateKey);
+    const shareData = { text, title: 'Weather Guesser' };
+    if (navigator.share) {
+      try {
+        if (!navigator.canShare || navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          return;
+        }
+      } catch (err) {
+        if ((err as Error)?.name === 'AbortError') return;
+        // Sharing failed for some other reason; fall back to clipboard below.
+      }
+    }
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -93,6 +135,12 @@ export default function ResultModal({
               <span>Max streak</span>
             </div>
           </div>
+        )}
+
+        {mode === 'daily' && (
+          <p className="wg-modal-countdown">
+            New game starts in <strong>{formatCountdown(msLeft)}</strong>
+          </p>
         )}
 
         <div className="wg-modal-actions">
