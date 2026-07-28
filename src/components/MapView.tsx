@@ -39,8 +39,12 @@ export default function MapView({ city }: MapViewProps) {
       attributionControl: false,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Wikimedia's "osm-intl" style renders place labels in English (falling back
+    // to the local name when no English name exists) instead of the local
+    // language used by the standard OSM tiles.
+    L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
       maxZoom: 18,
+      attribution: '© OpenStreetMap contributors',
     }).addTo(map);
 
     mapRef.current = map;

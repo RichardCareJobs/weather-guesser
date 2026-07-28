@@ -58,31 +58,35 @@ export default function App() {
     setShowResult(false);
   }, []);
 
+  const loadDailyRound = useCallback(() => {
+    const dateKey = todayKey();
+    dateKeyRef.current = dateKey;
+    const saved = loadDailyState();
+    let dayCities: City[];
+    let restoredAnswers: boolean[] = [];
+    if (saved && saved.dateKey === dateKey && saved.cityIds.length === CITIES_PER_ROUND) {
+      dayCities = saved.cityIds.map(cityById);
+      restoredAnswers = saved.answers;
+    } else {
+      dayCities = citiesForDate(dateKey);
+      saveDailyState({ dateKey, cityIds: dayCities.map((c) => c.id), answers: [] });
+    }
+    const idx = Math.min(Math.floor(restoredAnswers.length / CLUES_PER_CITY), CITIES_PER_ROUND - 1);
+    setCities(dayCities);
+    setSessionSeed(dateKey);
+    setWeatherMap({});
+    setCityIndex(idx);
+    setClueIndex(restoredAnswers.length - idx * CLUES_PER_CITY);
+    setSelected(null);
+    setAnswers(restoredAnswers);
+    setCityTransition(false);
+    setShowResult(restoredAnswers.length >= TOTAL_QUESTIONS);
+  }, []);
+
   // Initialize (or restore) a round whenever the mode changes.
   useEffect(() => {
     if (mode === 'daily') {
-      const dateKey = todayKey();
-      dateKeyRef.current = dateKey;
-      const saved = loadDailyState();
-      let dayCities: City[];
-      let restoredAnswers: boolean[] = [];
-      if (saved && saved.dateKey === dateKey && saved.cityIds.length === CITIES_PER_ROUND) {
-        dayCities = saved.cityIds.map(cityById);
-        restoredAnswers = saved.answers;
-      } else {
-        dayCities = citiesForDate(dateKey);
-        saveDailyState({ dateKey, cityIds: dayCities.map((c) => c.id), answers: [] });
-      }
-      const idx = Math.min(Math.floor(restoredAnswers.length / CLUES_PER_CITY), CITIES_PER_ROUND - 1);
-      setCities(dayCities);
-      setSessionSeed(dateKey);
-      setWeatherMap({});
-      setCityIndex(idx);
-      setClueIndex(restoredAnswers.length - idx * CLUES_PER_CITY);
-      setSelected(null);
-      setAnswers(restoredAnswers);
-      setCityTransition(false);
-      setShowResult(restoredAnswers.length >= TOTAL_QUESTIONS);
+      loadDailyRound();
     } else {
       startNewPracticeRound();
     }
@@ -267,6 +271,7 @@ export default function App() {
           stats={stats}
           onPlayPractice={handlePlayPractice}
           onClose={() => setShowResult(false)}
+          onNewDay={mode === 'daily' ? loadDailyRound : undefined}
         />
       )}
     </div>

@@ -575,6 +575,17 @@ h1, h2 {
   letter-spacing: 0.4px;
 }
 
+.wg-modal-countdown {
+  margin: 20px 0 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.wg-modal-countdown strong {
+  color: var(--text-h);
+  font-variant-numeric: tabular-nums;
+}
+
 .wg-modal-actions {
   display: flex;
   flex-direction: column;
